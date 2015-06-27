@@ -8,6 +8,9 @@ docker run --rm \
     -e OS_USERNAME="me@email.com" \
     -e OS_PASSWORD=passw0rd \
     -e OS_REGION_NAME=SBG-1 \
+    -e BACKUP_CONTAINER=database-prod \
+    -e BACKUP_NAME=daily-2 \
+    -e INITIAL_DELAY_IN_SECONDS=43200 \
     -e INTERVAL_IN_SECONDS=86400 \
     ganomede/database-backup
 ```
