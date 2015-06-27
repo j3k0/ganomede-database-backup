@@ -1,5 +1,5 @@
 ```sh
-docker run --rm
+docker run --rm \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v /var/lib/docker:/var/lib/docker \
     -e OS_AUTH_URL=https://auth.runabove.io/v2.0 \
