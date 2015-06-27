@@ -3,7 +3,9 @@
 set -e
 cd "`dirname $0`"
 
-BACKUP_PATH=/backup
+# Backup path, matches Dockerfile's VOLUME
+BACKUP_PATH=/tmp/backup/$BACKUP_CONTAINER/$BACKUP_NAME
+mkdir -p $BACKUP_NAME
 
 #
 # Collect backups in /backup
@@ -24,13 +26,14 @@ for container in $MARIADB_CONTAINERS; do
 	MARIADB_PASS=`docker inspect $container | grep MARIADB_PASS | cut -d\" -f2 | cut -d= -f2`
 	echo "Backing up $NAME..."
 	mkdir -p $BACKUP_PATH/$NAME
-	docker run --rm -it --link $container:db tutum/mariadb:latest mysqldump -h db -u admin -p$MARIADB_PASS --all-databases > $BACKUP_PATH/$NAME/all.sql
+	docker run --rm -v $BACKUP_PATH/$NAME:/backup --link $container:db tutum/mariadb:latest sh -c "mysqldump -h db -u admin -p$MARIADB_PASS --all-databases > /backup/all.sql"
 done
 
 #
 # Send to Swift
 #
 
+echo "Uploading..."
 docker run --rm \
 	-e OS_USERNAME=$OS_USERNAME \
 	-e OS_PASSWORD=$OS_PASSWORD \
@@ -41,4 +44,10 @@ docker run --rm \
 	-e OS_REGION_NAME=$OS_REGION_NAME \
 	-v $BACKUP_PATH:/$BACKUP_NAME \
 	krystism/openstackclient:juno \
-	swift upload $BACKUP_CONTAINER /$BACKUP_NAME
+	swift upload --changed $BACKUP_CONTAINER /$BACKUP_NAME
+
+#
+# Cleanup
+#
+
+rm -fr $BACKUP_PATH
