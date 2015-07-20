@@ -34,7 +34,7 @@ for container in $MARIADB_CONTAINERS; do
 	MARIADB_PASS=`docker inspect $container | grep MARIADB_PASS | cut -d\" -f2 | cut -d= -f2`
 	echo "Backing up $NAME..."
 	mkdir -p $BACKUP_PATH/$NAME
-	docker run --rm -v $BACKUP_PATH/$NAME:/backup --link $container:db tutum/mariadb:latest sh -c "mysqldump -h db -u admin -p$MARIADB_PASS --all-databases --single-transaction --quick --lock-tables=false > /backup/all.sql"
+	docker run --rm -v $BACKUP_PATH/$NAME:/backup --link $container:db tutum/mariadb:latest sh -c "mysqldump -h db -u admin -p$MARIADB_PASS --all-databases --single-transaction --quick --lock-tables=false | gzip > /backup/all.sql.gz"
 done
 
 #
