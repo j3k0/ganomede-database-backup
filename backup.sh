@@ -18,7 +18,7 @@ if [[ ! -z $NO_REDIS ]]; then
 fi
 
 for container in $REDIS_VOLUMES; do
-	NAME=`docker inspect $container | grep '"Hostname"' | cut -d\" -f4`
+	NAME=`docker inspect $container | grep '"Name"' | grep redis | cut -d\" -f4 | cut -d_ -f2`
 	echo "Backing up $NAME..."
 	mkdir -p $BACKUP_PATH/$NAME/data
 	docker run --rm -v $BACKUP_PATH/$NAME/data:/backup --volumes-from $container jeko/redis sh -c "cp /data/* /backup/"
