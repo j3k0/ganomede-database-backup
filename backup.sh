@@ -11,15 +11,10 @@ mkdir -p $BACKUP_NAME
 # Collect backups in /backup
 #
 
-REDIS_VOLUMES=`docker ps -a | grep -e " redis-.*-vol.*$" | awk '{ print $1 }'`
-MARIADB_CONTAINERS=`docker ps | grep -e " mariadb-.*$" | awk '{ print $1 }'`
+REDIS_VOLUMES=`docker ps -a | grep -e "redis_[a-zA-Z]*Volume" | awk '{ print $1 }'`
 
 if [[ ! -z $NO_REDIS ]]; then
     REDIS_VOLUMES=
-fi
-
-if [[ ! -z $NO_MARIADB ]]; then
-    MARIADB_CONTAINERS=
 fi
 
 for container in $REDIS_VOLUMES; do
@@ -27,14 +22,6 @@ for container in $REDIS_VOLUMES; do
 	echo "Backing up $NAME..."
 	mkdir -p $BACKUP_PATH/$NAME/data
 	docker run --rm -v $BACKUP_PATH/$NAME/data:/backup --volumes-from $container jeko/redis sh -c "cp /data/* /backup/"
-done
-
-for container in $MARIADB_CONTAINERS; do
-	NAME=`docker inspect $container | grep '"Hostname"' | cut -d\" -f4`
-	MARIADB_PASS=`docker inspect $container | grep MARIADB_PASS | cut -d\" -f2 | cut -d= -f2`
-	echo "Backing up $NAME..."
-	mkdir -p $BACKUP_PATH/$NAME
-	docker run --rm -v $BACKUP_PATH/$NAME:/backup --link $container:db tutum/mariadb:latest sh -c "mysqldump -h db -u admin -p$MARIADB_PASS --all-databases --single-transaction --quick --lock-tables=false | gzip > /backup/all.sql.gz"
 done
 
 #
